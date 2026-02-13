@@ -6,13 +6,13 @@ use num_traits::{Signed, ToPrimitive};
 use crate::error::{Error, Result};
 use crate::rand::Randoms;
 use once_cell::sync::Lazy;
-use rand_core::RngCore;
+use rand_core::Rng;
 
 pub const MIN_BIT_LENGTH: usize = 128;
 
 /// Generate a new prime number with size `bit_length`, sourced
 /// from an already-initialized `RngCore`
-pub fn gen_prime<R: RngCore + ?Sized>(bit_length: usize, rng: &mut R) -> Result {
+pub fn gen_prime<R: Rng + ?Sized>(bit_length: usize, rng: &mut R) -> Result {
     if bit_length < MIN_BIT_LENGTH {
         Err(Error::BitLength(bit_length))
     } else {
@@ -35,7 +35,7 @@ pub fn gen_prime<R: RngCore + ?Sized>(bit_length: usize, rng: &mut R) -> Result 
 
 /// Generate a new safe prime number with size `bit_length`, sourced
 /// from an already-initialized `RngCore`.
-pub fn gen_safe_prime<R: RngCore + ?Sized>(bit_length: usize, rng: &mut R) -> Result {
+pub fn gen_safe_prime<R: Rng + ?Sized>(bit_length: usize, rng: &mut R) -> Result {
     if bit_length < MIN_BIT_LENGTH {
         Err(Error::BitLength(bit_length))
     } else {
@@ -71,7 +71,7 @@ pub fn gen_safe_prime<R: RngCore + ?Sized>(bit_length: usize, rng: &mut R) -> Re
 }
 
 /// Checks if number is a prime using the Baillie-PSW test
-pub fn is_prime_baillie_psw<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
+pub fn is_prime_baillie_psw<R: Rng + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
     _is_prime(
         candidate,
         required_checks(candidate.bits() as usize),
@@ -82,7 +82,7 @@ pub fn is_prime_baillie_psw<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut 
 }
 
 /// Checks if number is a safe prime using the Baillie-PSW test
-pub fn is_safe_prime_baillie_psw<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
+pub fn is_safe_prime_baillie_psw<R: Rng + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
     _is_safe_prime(
         candidate,
         required_checks(candidate.bits() as usize),
@@ -92,7 +92,7 @@ pub fn is_safe_prime_baillie_psw<R: RngCore + ?Sized>(candidate: &BigUint, rng: 
 }
 
 /// Checks if number is a safe prime
-pub fn is_safe_prime<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
+pub fn is_safe_prime<R: Rng + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
     _is_safe_prime(
         candidate,
         required_checks(candidate.bits() as usize),
@@ -102,7 +102,7 @@ pub fn is_safe_prime<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut R) -> b
 }
 
 /// Common function for `is_safe_prime`
-fn _is_safe_prime<R: RngCore + ?Sized>(
+fn _is_safe_prime<R: Rng + ?Sized>(
     candidate: &BigUint,
     checks: usize,
     force2: bool,
@@ -127,7 +127,7 @@ fn _is_safe_prime<R: RngCore + ?Sized>(
 /// 2- Perform a Fermat Test
 /// 3- Perform log2(bitlength) + 5 rounds of Miller-Rabin
 ///    depending on the number of bits
-pub fn is_prime<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
+pub fn is_prime<R: Rng + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
     _is_prime(
         candidate,
         required_checks(candidate.bits() as usize),
@@ -138,7 +138,7 @@ pub fn is_prime<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
 }
 
 /// Common function for `is_prime`
-fn _is_prime<R: RngCore + ?Sized>(
+fn _is_prime<R: Rng + ?Sized>(
     candidate: &BigUint,
     checks: usize,
     force2: bool,
@@ -168,7 +168,7 @@ fn _is_prime<R: RngCore + ?Sized>(
 
 /// Generate a random candidate uint of the requested bit length
 #[inline]
-fn _prime_candidate<R: RngCore + ?Sized>(bit_length: u64, rng: &mut R) -> BigUint {
+fn _prime_candidate<R: Rng + ?Sized>(bit_length: u64, rng: &mut R) -> BigUint {
     let mut candidate = rng.gen_biguint(bit_length);
 
     // Set lowest bit (ensure odd)
@@ -186,7 +186,7 @@ fn _prime_candidate<R: RngCore + ?Sized>(bit_length: u64, rng: &mut R) -> BigUin
 }
 
 #[inline]
-fn _is_prime_basic<R: RngCore + ?Sized>(candidate: &BigUint, q_check: bool, rng: &mut R) -> bool {
+fn _is_prime_basic<R: Rng + ?Sized>(candidate: &BigUint, q_check: bool, rng: &mut R) -> bool {
     let mut tmp = BigUint::zero();
     for r in PRIMES.iter().copied() {
         tmp.clone_from(candidate);
@@ -212,7 +212,7 @@ fn required_checks(bits: usize) -> usize {
 /// Perform Fermat's little theorem on the candidate to determine probable
 /// primality.
 #[inline]
-fn fermat<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
+fn fermat<R: Rng + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
     let random = rng.gen_biguint_range(&BigUint::one(), candidate);
 
     let result = random.modpow(&(candidate - 1_u8), candidate);
@@ -221,7 +221,7 @@ fn fermat<R: RngCore + ?Sized>(candidate: &BigUint, rng: &mut R) -> bool {
 }
 
 /// Perform miller rabin primality tests
-fn miller_rabin<R: RngCore + ?Sized>(
+fn miller_rabin<R: Rng + ?Sized>(
     candidate: &BigUint,
     limit: usize,
     force2: bool,
@@ -640,17 +640,14 @@ mod tests {
     use crate::error::Error;
     use num_bigint::BigUint;
     use num_traits::Num;
-    use rand::thread_rng;
+    use rand::rng;
 
     #[test]
     fn gen_safe_prime_tests() {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         match gen_prime(16, &mut rng) {
             Ok(_) => panic!("No primes allowed under 16 bits"),
-            Err(e) => match e {
-                Error::BitLength(l) => assert_eq!(l, 16),
-                _ => panic!("Unexpected error"),
-            },
+            Err(Error::BitLength(l)) => assert_eq!(l, 16),
         };
 
         for bits in &[128, 256, 384, 512] {
@@ -662,13 +659,10 @@ mod tests {
 
     #[test]
     fn gen_prime_tests() {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         match gen_prime(16, &mut rng) {
             Ok(_) => panic!("No primes allowed under 16 bits"),
-            Err(e) => match e {
-                Error::BitLength(l) => assert_eq!(l, 16),
-                _ => panic!("Unexpected error"),
-            },
+            Err(Error::BitLength(l)) => assert_eq!(l, 16),
         };
 
         for bits in &[256, 512, 1024, 2048] {
@@ -680,7 +674,7 @@ mod tests {
 
     #[test]
     fn is_prime_tests() {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         for prime in PRIMES.iter().copied() {
             assert!(is_prime(&BigUint::from(prime), &mut rng));
         }

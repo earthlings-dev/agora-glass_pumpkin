@@ -1,5 +1,5 @@
 use num_bigint::{BigUint, RandBigInt};
-use rand_core::RngCore;
+use rand_core::Rng;
 
 /// Iterator to generate a given amount of random numbers. For convenience of
 /// use with miller_rabin tests, you can also append a specified number at the
@@ -12,7 +12,7 @@ pub struct Randoms<R> {
     rng: R,
 }
 
-impl<R: RngCore> Randoms<R> {
+impl<R: Rng> Randoms<R> {
     pub fn new(lower_limit: BigUint, upper_limit: BigUint, amount: usize, rng: R) -> Self {
         Self {
             appended: None,
@@ -37,7 +37,7 @@ impl<R: RngCore> Randoms<R> {
     }
 }
 
-impl<R: RngCore> Iterator for Randoms<R> {
+impl<R: Rng> Iterator for Randoms<R> {
     type Item = BigUint;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -62,17 +62,17 @@ mod test {
     use alloc::vec::Vec;
 
     use super::Randoms;
-    use rand::thread_rng;
+    use rand::rng;
 
     #[test]
     fn generate_amount_test() {
         let amount = 3;
-        let rands = Randoms::new(0_u8.into(), 1_u8.into(), amount, thread_rng());
+        let rands = Randoms::new(0_u8.into(), 1_u8.into(), amount, rng());
         let generated = rands.collect::<Vec<_>>();
         assert_eq!(generated.len(), amount);
 
         let rands =
-            Randoms::new(0_u8.into(), 1_u8.into(), amount, thread_rng()).with_appended(2_u8.into());
+            Randoms::new(0_u8.into(), 1_u8.into(), amount, rng()).with_appended(2_u8.into());
         let generated = rands.collect::<Vec<_>>();
         assert_eq!(generated.len(), amount);
     }
