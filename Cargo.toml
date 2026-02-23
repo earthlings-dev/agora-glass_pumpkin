@@ -44,7 +44,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [patch.crates-io]
-num-bigint = { git = "https://github.com/earthlings-dev/num-bigint.git" }
-rand_core = { git = "https://github.com/earthlings-dev/rand_core.git" }
-rand = { git = "https://github.com/earthlings-dev/rand.git" }
-getrandom = { git = "https://github.com/earthlings-dev/getrandom.git" }
+num-bigint = { path = "../num-bigint" }
+rand_core = { path = "../rand_core" }
+rand = { path = "../rand" }
+getrandom = { path = "../getrandom" }
